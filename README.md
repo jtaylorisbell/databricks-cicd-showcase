@@ -1,7 +1,4 @@
 # Databricks Asset Bundles with Multiple Branching Strategies
-This is an extension of two great resources available on this topic: [Databrick's bundle examples repo](https://github.com/databricks/bundle-examples) and [@ajalisatgi's dabs-gitflow repo](https://github.com/ajalisatgi/dabs-gitflow/tree/main)
-
-## Overview
 
 This project provides Databricks deployment workflows for two branching strategies:
 
