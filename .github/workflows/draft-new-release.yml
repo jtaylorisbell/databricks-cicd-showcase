@@ -26,15 +26,16 @@ jobs:
           ref: develop
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.11'
-            
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+        run: uv sync
           
       - name: Run tests
         if: success()
@@ -43,7 +44,7 @@ jobs:
           DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
           DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
         run: |
-          python run_tests_on_remote.py
+          uv run python run_tests_on_remote.py
           
   deploy-databricks:
     name: "Deploy Databricks Assets to Staging"
@@ -128,22 +129,16 @@ jobs:
       - name: Push new branch
         run: git push origin release/${{ steps.increment_version.outputs.new_version }}
 
-      - uses: actions/checkout@v4
-        with:
-          ref: release/${{ steps.increment_version.outputs.new_version }}
-          fetch-depth: 0
-
       - name: Create pull request
-        uses: thomaseizinger/create-pull-request@1.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          head: release/${{ steps.increment_version.outputs.new_version }}
-          base: main
-          title: Release version ${{ steps.increment_version.outputs.new_version }}
-          reviewers: ${{ github.actor }} 
-          body: |
-            Hi @${{ github.actor }}!
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head release/${{ steps.increment_version.outputs.new_version }} \
+            --title "Release version ${{ steps.increment_version.outputs.new_version }}" \
+            --reviewer ${{ github.actor }} \
+            --body "Hi @${{ github.actor }}!
 
-            This PR was created in response to a manual trigger of the release workflow here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}.
-            Merging this PR will create a GitHub release and upload any assets that are created as part of the release build.
+          This PR was created in response to a manual trigger of the release workflow here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+          Merging this PR will create a GitHub release and upload any assets that are created as part of the release build."

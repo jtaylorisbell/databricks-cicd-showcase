@@ -39,14 +39,24 @@ The following image represents the steps involved in deploying a Hotfix Release
 
 ## Running Tests
 To run tests locally, it is recommended that you use VSCode as your IDE. This is because the Databricks VSCode extension and Databricks Connect make it very easy to connect to your interactive cluster, run tests, and debug using the built-in VSCode Python debugger. Please reference the [documentation](https://docs.databricks.com/en/dev-tools/vscode-ext/index.html) to get started. The steps to debug are below:
-1. Create local Python environment:
-   ```bash
-   conda create -n my_env python=3.11
-   conda activate my_env
-   ```
-2.  Install development dependencies:
 
-3. Set `DATABRICKS_HOST` and `DATABRICKS_CLUSTER_ID` environment variables. You will also need `DATABRICKS_TOKEN` if you are using PAT authentication.
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if you haven't already:
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+
+2. Create and activate a Python environment (uv will automatically use the version specified in `.python-version`):
+   ```bash
+   uv venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. Install development dependencies:
+   ```bash
+   uv sync
+   ```
+
+4. Set `DATABRICKS_HOST` and `DATABRICKS_CLUSTER_ID` environment variables. You will also need `DATABRICKS_TOKEN` if you are using PAT authentication.
 > [!TIP]
 > The Databricks VSCode extension automatically adds a `.databricks.env` file to your local repo containing the environment variables associated with the workspace and cluster you are currently connected to. You can add the following bash script to your shell profile to automically add these environment variables at session start-up:
 > ```bash
@@ -55,7 +65,8 @@ To run tests locally, it is recommended that you use VSCode as your IDE. This is
 >   echo "✅ loaded .databricks.env"
 > fi
 > ```
-4. Run tests:
+
+5. Run tests:
    ```bash
-   pytest
+   uv run pytest
    ```

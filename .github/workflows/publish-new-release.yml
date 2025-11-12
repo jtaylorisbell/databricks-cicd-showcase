@@ -89,26 +89,24 @@ jobs:
 
       - name: Merge main into develop branch (for release branches)
         if: startsWith(github.event.pull_request.head.ref, 'release/') && env.FILES_CHANGED == 'true'
-        uses: thomaseizinger/create-pull-request@1.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          head: main
-          base: develop
-          title: Merge main into develop branch
-          body: |
-            This PR merges the main branch back into develop.
-            This ensures that the updates that happened on the release branch are also present on the develop branch.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base develop \
+            --head main \
+            --title "Merge main into develop branch" \
+            --body "This PR merges the main branch back into develop.
+          This ensures that the updates that happened on the release branch are also present on the develop branch."
 
       - name: Merge main into develop branch (for hotfix branches)
         if: startsWith(github.event.pull_request.head.ref, 'hotfix/') && env.FILES_CHANGED == 'true'
-        uses: thomaseizinger/create-pull-request@1.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          head: main
-          base: develop
-          title: Merge main into develop branch
-          body: |
-            This PR merges the main branch back into develop.
-            This ensures that the updates that happened on the hotfix branch are also present on the develop branch.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base develop \
+            --head main \
+            --title "Merge main into develop branch" \
+            --body "This PR merges the main branch back into develop.
+          This ensures that the updates that happened on the hotfix branch are also present on the develop branch."

@@ -66,25 +66,19 @@ jobs:
       - name: Push new branch
         run: git push origin hotfix/${{ steps.increment_version.outputs.new_version }}
 
-      - uses: actions/checkout@v4
-        with:
-          ref: hotfix/${{ steps.increment_version.outputs.new_version }}
-          fetch-depth: 0
-
       - name: Create pull request
-        uses: thomaseizinger/create-pull-request@1.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          head: hotfix/${{ steps.increment_version.outputs.new_version }}
-          base: main
-          title: Hotfix version ${{ steps.increment_version.outputs.new_version }}
-          reviewers: ${{ github.actor }} 
-          body: |
-            Hi @${{ github.actor }}!
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head hotfix/${{ steps.increment_version.outputs.new_version }} \
+            --title "Hotfix version ${{ steps.increment_version.outputs.new_version }}" \
+            --reviewer ${{ github.actor }} \
+            --body "Hi @${{ github.actor }}!
 
-            This PR was created in response to a manual trigger of the release workflow here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}.
-            Merging this PR will create a GitHub hotfix and upload any assets that are created as part of the release build.
+          This PR was created in response to a manual trigger of the release workflow here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+          Merging this PR will create a GitHub hotfix and upload any assets that are created as part of the release build."
       
       - name: Close Original PR, comment and delete the branch
         run: |

@@ -1,0 +1,43 @@
+[project]
+name = "default_python"
+version = "0.0.1"
+description = "wheel file based on default_python/src"
+authors = [
+    {name = "user@company.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "setuptools",
+]
+
+[project.urls]
+Homepage = "https://databricks.com"
+
+[project.scripts]
+main = "default_python.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+dev-dependencies = [
+    "databricks-dlt",
+    "pytest",
+    "python-dotenv",
+    "setuptools",
+    "wheel",
+    "databricks-connect",
+    "databricks-sdk",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
