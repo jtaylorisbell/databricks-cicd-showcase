@@ -1,0 +1,97 @@
+name: "Trunk-Based: Release to Production"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes (optional)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  test:
+    name: "Run Tests"
+    environment: prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run pytest
+
+  deploy-prod:
+    name: "Deploy Databricks Assets to Production"
+    needs: test
+    environment: prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate and deploy bundle
+        run: |
+          databricks bundle validate -t prod
+          databricks bundle deploy -t prod
+        env:
+          DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+
+  create-release:
+    name: "Create GitHub Release"
+    needs: deploy-prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub actions"
+          git config user.email noreply@github.com
+
+      - name: Create and push tag
+        run: |
+          git tag -a "${{ github.event.inputs.version }}" -m "Release ${{ github.event.inputs.version }}"
+          git push origin "${{ github.event.inputs.version }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_NOTES="${{ github.event.inputs.release_notes }}"
+          if [ -z "$RELEASE_NOTES" ]; then
+            RELEASE_NOTES="Release ${{ github.event.inputs.version }}"
+          fi
+
+          gh release create "${{ github.event.inputs.version }}" \
+            --title "Release ${{ github.event.inputs.version }}" \
+            --notes "$RELEASE_NOTES" \
+            --target main
