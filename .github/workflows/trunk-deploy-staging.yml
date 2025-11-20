@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # Run daily at 9 AM UTC (optional - remove if not needed)
-    - cron: '0 9 * * *'
+    # - cron: '0 9 * * *'
 
 permissions:
   contents: read
